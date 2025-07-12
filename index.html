@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Regine's Birthday Adventure</title>
   <style>
     body { margin: 0; background: #000; overflow: hidden; }
-    canvas { image-rendering: pixelated; background: #70c6ff; }
+    canvas { image-rendering: pixelated; background: #70c6ff; display: block; margin: auto; }
   </style>
 </head>
 <body>
@@ -13,71 +12,99 @@
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    const TILE = 32, MAP = 10;
+    const TILE = 32;const player = {
+  x: 1,
+  y: 1,
+  dir: 2, // 0 up, 1 left, 2 down, 3 right
+  frame: 0,
+  moving: false,
+  offsetX: 0,
+  offsetY: 0
+};
 
-    // Load a simple girl sprite sheet: (4 directions × 2 frames)
-    const sprite = new Image();
-    sprite.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAAAAABf3vZA..." ; // placeholder, will replace
+const sprite = new Image();
+sprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAA8CAYAAAD3U/yfAAAAAXNSR0IArs4c6QAAAIRlWElmTU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAVAcEbQAAAANQTFRF////AAD/AAAA/wAA/wD/AP//AAD/AAAA////AAD/AP8A/wD/AP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7jliYAAAAAF0Uk5TAEDm2GYAAABfSURBVFjD7c6xDQAgDAPBQf7/P8WjQgkpR2R4tkVRtvIU5My8RJvZse9LDb0FsdC8VCytJuW+yYC/C9tt2Oz1Ptv7QoD/pkUrxQDKhzEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEJWQxAJtOsOBEZ2ACAAAAAElFTkSuQmCC';
 
-    const player = { x: 1, y: 1, dir: 2, frame: 0, moving: false, moveProgress: 0 };
-    const levels = [/* same maps as before, portals etc. */];
+const keys = {};
+const map = [
+  [1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,1,1,0,1],
+  [1,0,1,0,3,0,0,1,0,1],
+  [1,0,1,0,1,1,0,1,0,1],
+  [1,0,0,3,0,1,0,0,0,1],
+  [1,1,1,1,0,1,1,1,0,1],
+  [1,0,0,1,0,0,0,1,0,1],
+  [1,0,0,0,0,1,0,0,4,1],
+  [1,1,1,1,1,1,1,1,1,1]
+];
 
-    function drawMap() { /* similar to previous version */ }
-
-    function drawPlayer() {
-      const px = player.x * TILE, py = player.y * TILE;
-      const fx = player.frame * 16, fy = player.dir * 16;
-      ctx.drawImage(sprite, fx, fy, 16, 16, px+8, py+8, 16, 16);
+function drawMap() {
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 10; x++) {
+      ctx.fillStyle = map[y][x] === 1 ? '#333' : '#99e550';
+      ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
     }
+  }
+}
 
-    function render() {
-      drawMap();
-      drawPlayer();
+function drawPlayer() {
+  const sx = player.frame * 16;
+  const sy = player.dir * 16;
+  const px = player.x * TILE + player.offsetX;
+  const py = player.y * TILE + player.offsetY;
+  ctx.drawImage(sprite, sx, sy, 16, 16, px + 8, py + 8, 16, 16);
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawMap();
+  drawPlayer();
+}
+
+function move(dir) {
+  if (player.moving) return;
+  player.dir = dir;
+  let dx = 0, dy = 0;
+  if (dir === 0) dy = -1;
+  if (dir === 1) dx = -1;
+  if (dir === 2) dy = 1;
+  if (dir === 3) dx = 1;
+
+  const newX = player.x + dx;
+  const newY = player.y + dy;
+
+  if (map[newY]?.[newX] === 1) return;
+
+  player.moving = true;
+  player.frame = 1;
+  let steps = 8;
+  const moveInterval = setInterval(() => {
+    player.offsetX += dx * 4;
+    player.offsetY += dy * 4;
+    render();
+    steps--;
+    if (steps === 0) {
+      clearInterval(moveInterval);
+      player.x = newX;
+      player.y = newY;
+      player.offsetX = 0;
+      player.offsetY = 0;
+      player.moving = false;
+      player.frame = 0;
     }
+  }, 30);
+}
 
-    function step(direction) {
-      if (player.moving) return;
-      player.dir = ["up","right","down","left"].indexOf(direction);
-      const dx = direction === "left" ? -1 : direction==="right"?1:0;
-      const dy = direction === "up"?-1:direction==="down"?1:0;
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp') move(0);
+  if (e.key === 'ArrowLeft') move(1);
+  if (e.key === 'ArrowDown') move(2);
+  if (e.key === 'ArrowRight') move(3);
+});
 
-      const nl = levels[player.level];
-      const tx = player.x + dx, ty = player.y + dy;
-      if (nl[ty]?.[tx] !== 1) {
-        player.moving = true;
-        player.moveProgress = 0;
-        player.destX = tx;
-        player.destY = ty;
-      }
-    }
+sprite.onload = render;
 
-    function update() {
-      if (player.moving) {
-        player.moveProgress += 4;
-        if (player.moveProgress >= TILE) {
-          player.x = player.destX;
-          player.y = player.destY;
-          player.moving = false;
-        }
-        player.frame = Math.floor(player.moveProgress / (TILE / 2)) % 2;
-      } else {
-        player.frame = 0;
-      }
-    }
-
-    document.addEventListener('keydown', e => {
-      if (e.key.startsWith("Arrow")) {
-        const dir = {"ArrowUp":"up","ArrowDown":"down","ArrowLeft":"left","ArrowRight":"right"}[e.key];
-        step(dir);
-      }
-    });
-
-    sprite.onload = () => {
-      setInterval(() => {
-        update();
-        render();
-      }, 1000 / 30);
-    };
   </script>
 </body>
 </html>
