@@ -5,10 +5,22 @@
   <style>
     body { margin: 0; background: #000; overflow: hidden; }
     canvas { image-rendering: pixelated; background: #70c6ff; display: block; margin: auto; }
+    #dialogueBox {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      font-family: monospace;
+      padding: 8px;
+      text-align: center;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <canvas id="game" width="320" height="320"></canvas>
+  <div id="dialogueBox"></div>
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
@@ -22,7 +34,6 @@
   offsetY: 0
 };
 
-// Princess sprite sheet: 3 frames per direction (4 directions)
 const sprite = new Image();
 sprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAA8CAYAAAD3U/yfAAAACXBIWXMAAAsTAAALEwEAmpwYAAAEsElEQVRoge2ZzW4TURSG3+f/0NZaNRVQg6EqWCBDiNQUzEQEgphMpWiWQuhIoQgEZCIgIpFgFBEOUQ7Z+djMzHcfZ2dmdmeOG8fnBf+9+fjZmZsEEmmaZpk2vS5SJ+KUnIgBWcBbwCrgHzgTbHQNoARcAosATuArO9yLnmGp1m1dZ9bdv5Vd6vtd8gtc66/uh60PBcImD/Fz1YY5+F39SK2O7K8H0cnvM3m46CX9dJ3ZGb8I3sMejIj6yiYwjxryG03FvdrFzKIoikbZ0F+aPQdQkF3pyZcAlyF17MBWx7AX0n4JOpD+cJvRbqv2ZCnZB+9fR3Bf6m5+lFZHs61HJk49HpjMfgssox8gfyqVspLaO4EbRzX+C7OZRBFTHe+CJU+EyoQUQQxRcO0ThCNAWW+i5XxhzrGRwMk+FGGr3cD5jEIDUPPqU6cu3W4XuhFO2lRxz++QVE3sO6EqTbBuRRfe8r8Qe4A8PsrETLSbMd5Sz57vJ0D0mGHcJhRTPUsXWuBM7tVEUfMC3EZ5Av7RjPuCHshjGstxBFa7RS7dpw4FD7yCQ+I4nYIvFClxH/wLvoecgV8Rf0FOtAc7G9gm8KgFHcPEQzEoUKGZp+FntShufCQfeFP0Nb2svVEMIhYph5fHR/7qZkyj+JxfTZTiYrUuF3liIocO+2W9kC/oSbxId8aHH2HZKiXIjGV4UdEEU9hzOgI8DblD2Y6MyTDx1a0+5IcnEkC+IDGbW+cg0RGtv9e7Fg+n63v2TWI2XPfFBEhtBd3v61jXY+p19DA8hzqkfLvkI8AL9KZyZ8oqQmoAAAAASUVORK5CYII=';
 
@@ -39,12 +50,26 @@ const map = [
   [1,1,1,1,1,1,1,1,1,1]
 ];
 
+const npcs = [
+  { x: 4, y: 3, msg: "Hi Regine! Happy Birthday from Jovert! 🎉" },
+  { x: 3, y: 5, msg: "Wishing you love, peace, and a ton of cake! 🍰" }
+];
+
+const dialogueBox = document.getElementById('dialogueBox');
+
 function drawMap() {
   for (let y = 0; y < 10; y++) {
     for (let x = 0; x < 10; x++) {
       ctx.fillStyle = map[y][x] === 1 ? '#333' : '#99e550';
       ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
     }
+  }
+}
+
+function drawNPCs() {
+  ctx.fillStyle = '#FF69B4';
+  for (const npc of npcs) {
+    ctx.fillRect(npc.x * TILE + 10, npc.y * TILE + 10, 12, 12);
   }
 }
 
@@ -59,6 +84,7 @@ function drawPlayer() {
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawMap();
+  drawNPCs();
   drawPlayer();
 }
 
@@ -95,11 +121,23 @@ function move(dir) {
   }, 50);
 }
 
+function checkInteraction() {
+  for (const npc of npcs) {
+    if (Math.abs(player.x - npc.x) + Math.abs(player.y - npc.y) === 1) {
+      dialogueBox.innerText = npc.msg;
+      dialogueBox.style.display = 'block';
+      return;
+    }
+  }
+  dialogueBox.style.display = 'none';
+}
+
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowUp') move(0);
   if (e.key === 'ArrowLeft') move(1);
   if (e.key === 'ArrowDown') move(2);
   if (e.key === 'ArrowRight') move(3);
+  if (e.key === 'Enter') checkInteraction();
 });
 
 sprite.onload = render;
