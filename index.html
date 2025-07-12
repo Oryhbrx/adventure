@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Regine's Birthday Adventure</title>
+  <title>Regine the Pixel Princess</title>
   <style>
     body { margin: 0; background: #000; overflow: hidden; }
     canvas { image-rendering: pixelated; background: #70c6ff; display: block; margin: auto; }
@@ -15,17 +15,17 @@
     const TILE = 32;const player = {
   x: 1,
   y: 1,
-  dir: 2, // 0 up, 1 left, 2 down, 3 right
+  dir: 2,
   frame: 0,
   moving: false,
   offsetX: 0,
   offsetY: 0
 };
 
+// Princess sprite sheet: 3 frames per direction (4 directions)
 const sprite = new Image();
-sprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAA8CAYAAAD3U/yfAAAAAXNSR0IArs4c6QAAAIRlWElmTU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAVAcEbQAAAANQTFRF////AAD/AAAA/wAA/wD/AP//AAD/AAAA////AAD/AP8A/wD/AP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7jliYAAAAAF0Uk5TAEDm2GYAAABfSURBVFjD7c6xDQAgDAPBQf7/P8WjQgkpR2R4tkVRtvIU5My8RJvZse9LDb0FsdC8VCytJuW+yYC/C9tt2Oz1Ptv7QoD/pkUrxQDKhzEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEKUQxEJWQxAJtOsOBEZ2ACAAAAAElFTkSuQmCC';
+sprite.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAA8CAYAAAD3U/yfAAAACXBIWXMAAAsTAAALEwEAmpwYAAAEsElEQVRoge2ZzW4TURSG3+f/0NZaNRVQg6EqWCBDiNQUzEQEgphMpWiWQuhIoQgEZCIgIpFgFBEOUQ7Z+djMzHcfZ2dmdmeOG8fnBf+9+fjZmZsEEmmaZpk2vS5SJ+KUnIgBWcBbwCrgHzgTbHQNoARcAosATuArO9yLnmGp1m1dZ9bdv5Vd6vtd8gtc66/uh60PBcImD/Fz1YY5+F39SK2O7K8H0cnvM3m46CX9dJ3ZGb8I3sMejIj6yiYwjxryG03FvdrFzKIoikbZ0F+aPQdQkF3pyZcAlyF17MBWx7AX0n4JOpD+cJvRbqv2ZCnZB+9fR3Bf6m5+lFZHs61HJk49HpjMfgssox8gfyqVspLaO4EbRzX+C7OZRBFTHe+CJU+EyoQUQQxRcO0ThCNAWW+i5XxhzrGRwMk+FGGr3cD5jEIDUPPqU6cu3W4XuhFO2lRxz++QVE3sO6EqTbBuRRfe8r8Qe4A8PsrETLSbMd5Sz57vJ0D0mGHcJhRTPUsXWuBM7tVEUfMC3EZ5Av7RjPuCHshjGstxBFa7RS7dpw4FD7yCQ+I4nYIvFClxH/wLvoecgV8Rf0FOtAc7G9gm8KgFHcPEQzEoUKGZp+FntShufCQfeFP0Nb2svVEMIhYph5fHR/7qZkyj+JxfTZTiYrUuF3liIocO+2W9kC/oSbxId8aHH2HZKiXIjGV4UdEEU9hzOgI8DblD2Y6MyTDx1a0+5IcnEkC+IDGbW+cg0RGtv9e7Fg+n63v2TWI2XPfFBEhtBd3v61jXY+p19DA8hzqkfLvkI8AL9KZyZ8oqQmoAAAAASUVORK5CYII=';
 
-const keys = {};
 const map = [
   [1,1,1,1,1,1,1,1,1,1],
   [1,0,0,0,0,0,0,0,0,1],
@@ -73,15 +73,14 @@ function move(dir) {
 
   const newX = player.x + dx;
   const newY = player.y + dy;
-
   if (map[newY]?.[newX] === 1) return;
 
   player.moving = true;
-  player.frame = 1;
   let steps = 8;
   const moveInterval = setInterval(() => {
     player.offsetX += dx * 4;
     player.offsetY += dy * 4;
+    player.frame = (player.frame + 1) % 3;
     render();
     steps--;
     if (steps === 0) {
@@ -93,7 +92,7 @@ function move(dir) {
       player.moving = false;
       player.frame = 0;
     }
-  }, 30);
+  }, 50);
 }
 
 document.addEventListener('keydown', e => {
