@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -33,9 +32,10 @@
       align-items: center;
       font-size: 1.5rem;
       display: none;
+      text-align: center;
     }
     button {
-      margin-top: 20px;
+      margin: 10px;
       padding: 10px 20px;
       font-size: 1rem;
       cursor: pointer;
@@ -53,77 +53,125 @@
     <p><em>The sleeping beauty</em></p>
     <p><em>The beauty and the bills</em></p>
     <p><em>Ang babaeng may mahiyaing binti</em></p>
-    <button onclick="location.reload()">🔁 Replay Game</button>
+    <div>
+      <button onclick="alert('Coming soon: Photo Slideshow!')">📸 View Photos</button>
+      <button onclick="alert('Coming soon: Birthday Video!')">🎥 Watch Video</button>
+      <button onclick="location.reload()">🔁 Replay Game</button>
+    </div>
   </div>
   <script>
     const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');const TILE_SIZE = 32;
+const MAP_SIZE = 10;
+let player = { x: 1, y: 1 };
+let currentLevel = 0;
 
-    const TILE_SIZE = 32;
-    const MAP_SIZE = 10;
-    let player = { x: 1, y: 1 };
-    let goal = { x: 8, y: 8 };
+const levels = [
+  // Level 0: Cake Land
+  [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1],
+    [1,0,1,0,3,0,0,1,0,1],
+    [1,0,1,0,1,1,0,1,0,1],
+    [1,0,0,3,0,1,0,0,0,1],
+    [1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,1,0,0,0,1,0,1],
+    [1,0,0,0,0,1,0,0,4,1],
+    [1,1,1,1,1,1,1,1,1,1]
+  ],
+  // Level 1: Memory Forest
+  [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1],
+    [1,0,1,0,5,0,0,1,0,1],
+    [1,0,1,0,1,1,0,1,0,1],
+    [1,0,0,5,0,1,0,0,0,1],
+    [1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,1,0,0,0,1,0,1],
+    [1,0,0,0,0,1,0,0,6,1],
+    [1,1,1,1,1,1,1,1,1,1]
+  ],
+  // Level 2: Gift Tower
+  [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,1,0,1],
+    [1,0,1,0,0,0,0,1,0,1],
+    [1,0,1,0,1,1,0,1,0,1],
+    [1,0,0,0,0,1,0,0,0,1],
+    [1,1,1,1,0,1,1,1,0,1],
+    [1,0,0,1,0,0,0,1,0,1],
+    [1,0,0,0,0,1,0,0,2,1],
+    [1,1,1,1,1,1,1,1,1,1]
+  ]
+];
 
-    const map = [
-      [1,1,1,1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,0,0,0,1],
-      [1,0,1,1,0,1,1,1,0,1],
-      [1,0,1,0,0,0,0,1,0,1],
-      [1,0,1,0,1,1,0,1,0,1],
-      [1,0,0,0,0,1,0,0,0,1],
-      [1,1,1,1,0,1,1,1,0,1],
-      [1,0,0,1,0,0,0,1,0,1],
-      [1,0,0,0,0,1,0,0,2,1],
-      [1,1,1,1,1,1,1,1,1,1],
-    ];
+function drawTile(x, y, type) {
+  switch (type) {
+    case 1: ctx.fillStyle = '#444'; break; // Wall
+    case 2: ctx.fillStyle = '#ffeb3b'; break; // Goal
+    case 3: ctx.fillStyle = '#ffb6c1'; break; // Cake
+    case 4:
+    case 6: ctx.fillStyle = '#aaffaa'; break; // Portal
+    case 5: ctx.fillStyle = '#bbdefb'; break; // Memory orb
+    default: ctx.fillStyle = '#99e550'; break; // Path
+  }
+  ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+}
 
-    function drawTile(x, y, type) {
-      if (type === 1) ctx.fillStyle = '#444'; // Wall
-      else if (type === 2) ctx.fillStyle = '#ffeb3b'; // Goal (Gift)
-      else ctx.fillStyle = '#99e550'; // Path
-      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+function drawPlayer() {
+  ctx.fillStyle = '#ff4081';
+  ctx.fillRect(player.x * TILE_SIZE + 8, player.y * TILE_SIZE + 8, 16, 16);
+}
+
+function drawMap() {
+  const map = levels[currentLevel];
+  for (let y = 0; y < MAP_SIZE; y++) {
+    for (let x = 0; x < MAP_SIZE; x++) {
+      drawTile(x, y, map[y][x]);
     }
+  }
+}
 
-    function drawPlayer() {
-      ctx.fillStyle = '#ff4081';
-      ctx.fillRect(player.x * TILE_SIZE + 8, player.y * TILE_SIZE + 8, 16, 16);
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawMap();
+  drawPlayer();
+}
+
+document.addEventListener('keydown', (e) => {
+  const map = levels[currentLevel];
+  const oldX = player.x;
+  const oldY = player.y;
+
+  if (e.key === 'ArrowUp') player.y--;
+  if (e.key === 'ArrowDown') player.y++;
+  if (e.key === 'ArrowLeft') player.x--;
+  if (e.key === 'ArrowRight') player.x++;
+
+  if (map[player.y]?.[player.x] === 1 || player.x < 0 || player.y < 0 || player.x >= MAP_SIZE || player.y >= MAP_SIZE) {
+    player.x = oldX;
+    player.y = oldY;
+  }
+
+  render();
+
+  const tile = map[player.y][player.x];
+  if (tile === 4 || tile === 6) {
+    currentLevel++;
+    if (currentLevel >= levels.length) {
+      document.getElementById('overlay').style.display = 'flex';
+    } else {
+      player = { x: 1, y: 1 };
     }
-
-    function drawMap() {
-      for (let y = 0; y < MAP_SIZE; y++) {
-        for (let x = 0; x < MAP_SIZE; x++) {
-          drawTile(x, y, map[y][x]);
-        }
-      }
-    }
-
-    function render() {
-      drawMap();
-      drawPlayer();
-    }
-
-    document.addEventListener('keydown', (e) => {
-      const oldX = player.x;
-      const oldY = player.y;
-
-      if (e.key === 'ArrowUp') player.y--;
-      if (e.key === 'ArrowDown') player.y++;
-      if (e.key === 'ArrowLeft') player.x--;
-      if (e.key === 'ArrowRight') player.x++;
-
-      if (map[player.y]?.[player.x] === 1 || player.x < 0 || player.y < 0 || player.x >= MAP_SIZE || player.y >= MAP_SIZE) {
-        player.x = oldX;
-        player.y = oldY;
-      }
-
-      render();
-
-      if (map[player.y][player.x] === 2) {
-        document.getElementById('overlay').style.display = 'flex';
-      }
-    });
-
     render();
+  }
+});
+
+render();
+
   </script>
 </body>
 </html>
