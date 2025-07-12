@@ -34,6 +34,24 @@
       display: none;
       text-align: center;
     }
+    #console {
+      width: 100%;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      background-color: #222;
+      border-top: 2px solid #444;
+    }
+    #console input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      font-family: monospace;
+      color: white;
+      background: black;
+      border: 1px solid #555;
+    }
     button {
       margin: 10px;
       padding: 10px 20px;
@@ -59,6 +77,9 @@
       <button onclick="location.reload()">🔁 Replay Game</button>
     </div>
   </div>
+  <div id="console">
+    <input type="text" id="command" placeholder="Type a command like 'move up' and press Enter...">
+  </div>
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');const TILE_SIZE = 32;
@@ -67,7 +88,6 @@ let player = { x: 1, y: 1 };
 let currentLevel = 0;
 
 const levels = [
-  // Level 0: Cake Land
   [
     [1,1,1,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,1],
@@ -80,7 +100,6 @@ const levels = [
     [1,0,0,0,0,1,0,0,4,1],
     [1,1,1,1,1,1,1,1,1,1]
   ],
-  // Level 1: Memory Forest
   [
     [1,1,1,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,1],
@@ -93,7 +112,6 @@ const levels = [
     [1,0,0,0,0,1,0,0,6,1],
     [1,1,1,1,1,1,1,1,1,1]
   ],
-  // Level 2: Gift Tower
   [
     [1,1,1,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,1],
@@ -110,13 +128,13 @@ const levels = [
 
 function drawTile(x, y, type) {
   switch (type) {
-    case 1: ctx.fillStyle = '#444'; break; // Wall
-    case 2: ctx.fillStyle = '#ffeb3b'; break; // Goal
-    case 3: ctx.fillStyle = '#ffb6c1'; break; // Cake
+    case 1: ctx.fillStyle = '#444'; break;
+    case 2: ctx.fillStyle = '#ffeb3b'; break;
+    case 3: ctx.fillStyle = '#ffb6c1'; break;
     case 4:
-    case 6: ctx.fillStyle = '#aaffaa'; break; // Portal
-    case 5: ctx.fillStyle = '#bbdefb'; break; // Memory orb
-    default: ctx.fillStyle = '#99e550'; break; // Path
+    case 6: ctx.fillStyle = '#aaffaa'; break;
+    case 5: ctx.fillStyle = '#bbdefb'; break;
+    default: ctx.fillStyle = '#99e550'; break;
   }
   ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 }
@@ -141,15 +159,14 @@ function render() {
   drawPlayer();
 }
 
-document.addEventListener('keydown', (e) => {
+function movePlayer(direction) {
   const map = levels[currentLevel];
   const oldX = player.x;
   const oldY = player.y;
-
-  if (e.key === 'ArrowUp') player.y--;
-  if (e.key === 'ArrowDown') player.y++;
-  if (e.key === 'ArrowLeft') player.x--;
-  if (e.key === 'ArrowRight') player.x++;
+  if (direction === 'up') player.y--;
+  if (direction === 'down') player.y++;
+  if (direction === 'left') player.x--;
+  if (direction === 'right') player.x++;
 
   if (map[player.y]?.[player.x] === 1 || player.x < 0 || player.y < 0 || player.x >= MAP_SIZE || player.y >= MAP_SIZE) {
     player.x = oldX;
@@ -167,6 +184,24 @@ document.addEventListener('keydown', (e) => {
       player = { x: 1, y: 1 };
     }
     render();
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') movePlayer('up');
+  if (e.key === 'ArrowDown') movePlayer('down');
+  if (e.key === 'ArrowLeft') movePlayer('left');
+  if (e.key === 'ArrowRight') movePlayer('right');
+});
+
+document.getElementById('command').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    const cmd = e.target.value.toLowerCase();
+    if (cmd.includes('up')) movePlayer('up');
+    else if (cmd.includes('down')) movePlayer('down');
+    else if (cmd.includes('left')) movePlayer('left');
+    else if (cmd.includes('right')) movePlayer('right');
+    e.target.value = '';
   }
 });
 
